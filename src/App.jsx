@@ -9,31 +9,31 @@ const ACCENT = "indigo"; // keep one accent family
 const OPTIONS = [
   {
     key: "option1",
-    name: "NEBULA",
+    name: "Shreya Kaushik",
     subtitle: "The Cosmic Explorer",
     emoji: "🚀",
-    img: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?q=80&w=900&auto=format",
+    img: "https://images.unsplash.com/photo-1683184673811-5b87198a78f6?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     key: "option2",
-    name: "VOLT",
+    name: "Mayank",
     subtitle: "The Energy Master",
     emoji: "⚡",
-    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=900&auto=format",
+    img: "https://dev-surefy.s3.ap-south-1.amazonaws.com/upload/7613bb8e-a601-4e06-ba53-35f0ca6e19c3_1755236465021.jpg",
   },
   {
     key: "option3",
-    name: "INFERNO",
+    name: "Shyam Sharma",
     subtitle: "The Fire Lord",
     emoji: "🔥",
-    img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=900&auto=format",
+    img: "https://images.unsplash.com/photo-1710410798859-6791f87c2e9d?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     key: "option4",
-    name: "CRYSTAL",
+    name: "Mansi Bansal",
     subtitle: "The Diamond King",
     emoji: "💎",
-    img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=900&auto=format",
+    img: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
 ];
 
@@ -239,7 +239,7 @@ function ApplicantCard({ option, votes, total, onVote }) {
   );
 }
 
-function Landing({ isDark, onStart, total, votes, activeMode }) {
+function Landing({ isDark, onStart, total, votes }) {
   return (
     <section className={`${isDark ? "bg-zinc-950" : "bg-slate-50"} border-b ${isDark ? "border-zinc-900" : "border-slate-200"}`}>
       <div className="max-w-7xl mx-auto px-5 py-14">
@@ -269,7 +269,7 @@ function Landing({ isDark, onStart, total, votes, activeMode }) {
         {/* Applicants */}
         <div className="mt-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Applicants</h2>
+            <h2 className="text-xl font-bold">Top 4 Applicants</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
@@ -279,7 +279,6 @@ function Landing({ isDark, onStart, total, votes, activeMode }) {
                 option={o}
                 votes={votes[o.key]}
                 total={total}
-                showCTA={activeMode}
                 onVote={onStart}
               />
             ))}
@@ -295,17 +294,17 @@ function Landing({ isDark, onStart, total, votes, activeMode }) {
 export default function App() {
   const [isDark, setIsDark] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
-  const [started, setStarted] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [votes] = useState({
-    option1: Math.floor(Math.random() * 1000) + 150,
-    option2: Math.floor(Math.random() * 1000) + 200,
-    option3: Math.floor(Math.random() * 1000) + 100,
-    option4: Math.floor(Math.random() * 1000) + 300,
+    option1: 102, // Shreya Kaushik - 102 votes (1st place)
+    option2: 101, // Mayank - 101 votes (2nd place - just 1 vote behind)
+    option3: 98,  // Shyam Sharma - 98 votes
+    option4: 95,  // Mansi Bansal - 95 votes
   });
 
   const total = useMemo(() => Object.values(votes).reduce((a, b) => a + b, 0), [votes]);
 
+  // Show Instagram login when vote button is clicked
   if (showLogin) return <InstagramLogin onBack={() => setShowLogin(false)} />;
 
   return (
@@ -313,26 +312,15 @@ export default function App() {
       <Header
         isDark={isDark}
         onToggleTheme={() => setIsDark((v) => !v)}
-        onStart={() => (started ? setShowLogin(true) : setStarted(true))}
+        onStart={() => setShowLogin(true)}
       />
 
-      {!started ? (
-        <Landing
-          isDark={isDark}
-          onStart={() => setStarted(true)}
-          total={total}
-          votes={votes}
-          activeMode={false}
-        />
-      ) : (
-        <Landing
-          isDark={isDark}
-          onStart={() => setShowLogin(true)}
-          total={total}
-          votes={votes}
-          activeMode
-        />
-      )}
+      <Landing
+        isDark={isDark}
+        onStart={() => setShowLogin(true)}
+        total={total}
+        votes={votes}
+      />
 
       {showWelcome && <WelcomePopup isDark={isDark} onClose={() => setShowWelcome(false)} />}
 
