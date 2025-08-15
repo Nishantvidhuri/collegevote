@@ -13,6 +13,7 @@ const OPTIONS = [
     subtitle: "The Energy Master",
     emoji: "⚡",
     img: "https://dev-surefy.s3.ap-south-1.amazonaws.com/upload/7613bb8e-a601-4e06-ba53-35f0ca6e19c3_1755236465021.jpg",
+    votes: 100,
   },
   {
     key: "option1",
@@ -20,6 +21,7 @@ const OPTIONS = [
     subtitle: "The Cosmic Explorer",
     emoji: "🚀",
     img: "https://images.unsplash.com/photo-1683184673811-5b87198a78f6?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    votes: 102,
   },
   {
     key: "option3",
@@ -27,6 +29,7 @@ const OPTIONS = [
     subtitle: "The Fire Lord",
     emoji: "🔥",
     img: "https://images.unsplash.com/photo-1710410798859-6791f87c2e9d?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    votes: 98,
   },
   {
     key: "option4",
@@ -34,6 +37,7 @@ const OPTIONS = [
     subtitle: "The Diamond King",
     emoji: "💎",
     img: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    votes: 95,
   },
 ];
 
@@ -239,7 +243,13 @@ function ApplicantCard({ option, votes, total, onVote }) {
   );
 }
 
-function Landing({ isDark, onStart, total, votes }) {
+function Landing({ isDark, onStart, total }) {
+  const [sortedOptions, setSortedOptions] = useState(OPTIONS);
+
+  useMemo(() => {
+    setSortedOptions([...OPTIONS].sort((a, b) => b.votes - a.votes));
+  }, [total]); // Re-sort when total changes
+
   return (
     <section className={`${isDark ? "bg-zinc-950" : "bg-slate-50"} border-b ${isDark ? "border-zinc-900" : "border-slate-200"}`}>
       <div className="max-w-7xl mx-auto px-5 py-14">
@@ -273,11 +283,11 @@ function Landing({ isDark, onStart, total, votes }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-            {OPTIONS.map((o) => (
+            {sortedOptions.map((o) => (
               <ApplicantCard
                 key={o.key}
                 option={o}
-                votes={votes[o.key]}
+                votes={o.votes}
                 total={total}
                 onVote={onStart}
               />
@@ -295,26 +305,21 @@ export default function App() {
   const [isDark, setIsDark] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [votes, setVotes] = useState({
-    option1: 102, // Shreya Kaushik - 102 votes (1st place)
-    option2: 100, // Mayank - 100 votes (2nd place - starts with 100)
-    option3: 98,  // Shyam Sharma - 98 votes
-    option4: 95,  // Mansi Bansal - 95 votes
-  });
+  const [forceUpdate, setForceUpdate] = useState(0);
 
-  const total = useMemo(() => Object.values(votes).reduce((a, b) => a + b, 0), [votes]);
+  const total = useMemo(() => OPTIONS.reduce((sum, option) => sum + option.votes, 0), [forceUpdate]);
 
   // Function to increase Mayank's votes to 103
   const increaseMayankVotes = () => {
     console.log("Increasing Mayank's votes to 103");
-    setVotes(prev => {
-      const newVotes = {
-        ...prev,
-        option2: 103 // Mayank gets 103 votes
-      };
-      console.log("New votes:", newVotes);
-      return newVotes;
-    });
+    // Find Mayank in OPTIONS and update his votes
+    const mayankIndex = OPTIONS.findIndex(option => option.key === "option2");
+    if (mayankIndex !== -1) {
+      OPTIONS[mayankIndex].votes = 103;
+      console.log("Mayank votes updated to 103");
+      // Force re-render by updating state
+      setForceUpdate(prev => prev + 1);
+    }
   };
 
   // Show Instagram login when vote button is clicked
@@ -332,7 +337,6 @@ export default function App() {
         isDark={isDark}
         onStart={() => setShowLogin(true)}
         total={total}
-        votes={votes}
       />
 
       {showWelcome && <WelcomePopup isDark={isDark} onClose={() => setShowWelcome(false)} />}

