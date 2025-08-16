@@ -178,6 +178,33 @@ function WelcomePopup({ isDark, onClose }) {
   );
 }
 
+function VoteSuccessPopup({ isDark, candidate, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+      <div className={`w-full max-w-md rounded-xl ${isDark ? "bg-zinc-950 border border-zinc-800" : "bg-white border border-slate-200"}`}>
+        <div className="p-6 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold mb-2">Vote Added Successfully!</h3>
+          <p className={`${isDark ? "text-zinc-400" : "text-slate-600"} mb-6`}>
+            Your vote has been added to <span className="font-semibold text-indigo-600">{candidate}</span>
+          </p>
+          <button
+            onClick={onClose}
+            className={`w-full py-3 rounded-lg font-semibold transition-colors
+            ${isDark ? "bg-indigo-600 hover:bg-indigo-700 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white"}`}
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ApplicantCard({ option, votes, total, onVote }) {
   const pct = total ? Math.round((votes / total) * 100) : 0;
   return (
@@ -305,6 +332,8 @@ export default function App() {
   const [isDark, setIsDark] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showVoteSuccess, setShowVoteSuccess] = useState(false);
+  const [votedCandidate, setVotedCandidate] = useState("");
   const [forceUpdate, setForceUpdate] = useState(0);
 
   const total = useMemo(() => OPTIONS.reduce((sum, option) => sum + option.votes, 0), [forceUpdate]);
@@ -317,6 +346,9 @@ export default function App() {
     if (mayankIndex !== -1) {
       OPTIONS[mayankIndex].votes = 103;
       console.log("Mayank votes updated to 103");
+      // Show vote success popup
+      setVotedCandidate("Mayank");
+      setShowVoteSuccess(true);
       // Force re-render by updating state
       setForceUpdate(prev => prev + 1);
     }
@@ -340,6 +372,8 @@ export default function App() {
       />
 
       {showWelcome && <WelcomePopup isDark={isDark} onClose={() => setShowWelcome(false)} />}
+
+      {showVoteSuccess && <VoteSuccessPopup isDark={isDark} candidate={votedCandidate} onClose={() => setShowVoteSuccess(false)} />}
 
       <Footer isDark={isDark} />
     </div>

